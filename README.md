@@ -1,6 +1,6 @@
 # Music Share App
 
-This is a simple music sharing application built for practicing Material UI and Emotion styling.
+This is a simple music sharing application built for practicing Material UI and Emotion styling. The application itself has minimal functionality. Therefore, the main purpose of this application is for practicing UI/UX design
 
 ## NOTE:
 
