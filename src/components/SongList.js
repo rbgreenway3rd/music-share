@@ -10,15 +10,11 @@ import {
 } from "@mui/material";
 import { PlayArrow, Save } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
+import { useSubscription } from "@apollo/client";
+import { GET_SONGS } from "../graphql/subscriptions";
 
 function SongList() {
-  let loading = false;
-
-  const song = {
-    title: "LÜNE",
-    artist: "MÖÖN",
-    thumbnail: "http://img.youtube.com/vi/--ZtUFsIgMk/0.jpg",
-  };
+  const { data, loading, error } = useSubscription(GET_SONGS);
 
   if (loading) {
     return (
@@ -34,11 +30,15 @@ function SongList() {
       </div>
     );
   }
+  if (error) {
+    console.log(error);
+    return <div>Error fetching songs</div>;
+  }
 
   return (
     <div>
-      {Array.from({ length: 10 }, () => song).map((song, i) => (
-        <Song key={i} song={song} />
+      {data.songs.map((song) => (
+        <Song key={song.id} song={song} />
       ))}
     </div>
   );
