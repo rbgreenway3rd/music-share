@@ -8,10 +8,12 @@ import {
   CardActions,
   IconButton,
 } from "@mui/material";
-import { PlayArrow, Save } from "@mui/icons-material";
+import { Pause, PlayArrow, Save } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
-import { useSubscription } from "@apollo/client";
+import { useMutation, useSubscription } from "@apollo/client";
 import { GET_SONGS } from "../graphql/subscriptions";
+import { songContext } from "../App";
+import { ADD_OR_REMOVE_FROM_QUEUE } from "../graphql/mutations";
 
 function SongList() {
   const { data, loading, error } = useSubscription(GET_SONGS);
@@ -65,9 +67,35 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function Song({ song }) {
+  const { id } = song;
   const classes = useStyles();
+  const [addOrRemoveFromQueue] = useMutation(ADD_OR_REMOVE_FROM_QUEUE, {
+    onCompleted: (data) => {
+      localStorage.setItem(
+        "queuedSongs",
+        JSON.stringify(data.addOrRemoveFromQueue)
+      );
+    },
+  });
+  const { state, dispatch } = React.useContext(songContext);
+  const [currentSongPlaying, setCurrentSongPlaying] = React.useState(false);
   const { title, artist, thumbnail } = song;
 
+  React.useEffect(() => {
+    const isSongPlaying = state.isPlaying && id === state.song.id;
+    setCurrentSongPlaying(isSongPlaying);
+  }, [id, state.song.id, state.isPlaying]);
+
+  function handleTogglePlay() {
+    dispatch({ type: "SET_SONG", payload: { song } });
+    dispatch(state.isPlaying ? { type: "PAUSE_SONG" } : { type: "PLAY_SONG" });
+  }
+
+  function handleAddOrRemoveFromQueue() {
+    addOrRemoveFromQueue({
+      variables: { input: { ...song, __typename: "Song" } },
+    });
+  }
   return (
     <Card className={classes.container}>
       <div className={classes.songInfoContainer}>
@@ -82,10 +110,14 @@ function Song({ song }) {
             </Typography>
           </CardContent>
           <CardActions>
-            <IconButton size="small" color="primary">
-              <PlayArrow />
+            <IconButton onClick={handleTogglePlay} size="small" color="primary">
+              {currentSongPlaying ? <Pause /> : <PlayArrow />}
             </IconButton>
-            <IconButton size="small" color="secondary">
+            <IconButton
+              onClick={handleAddOrRemoveFromQueue}
+              size="small"
+              color="secondary"
+            >
               <Save />
             </IconButton>
           </CardActions>

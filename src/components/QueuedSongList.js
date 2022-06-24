@@ -3,24 +3,27 @@ import { Typography, Avatar, IconButton, useMediaQuery } from "@mui/material";
 import { Delete } from "@mui/icons-material";
 
 import { makeStyles } from "@mui/styles";
+import { useMutation } from "@apollo/client";
+import { ADD_OR_REMOVE_FROM_QUEUE } from "../graphql/mutations";
 
-function QueuedSongList() {
+function QueuedSongList({ queuedSongs }) {
+  console.log(queuedSongs);
   const greaterThanMd = useMediaQuery((theme) => theme.breakpoints.up("md"));
 
-  const song = {
-    title: "LÜNE",
-    artist: "MÖÖN",
-    thumbnail: "http://img.youtube.com/vi/--ZtUFsIgMk/0.jpg",
-  };
+  // const song = {
+  //   title: "LÜNE",
+  //   artist: "MÖÖN",
+  //   thumbnail: "http://img.youtube.com/vi/--ZtUFsIgMk/0.jpg",
+  // };
 
   return (
     greaterThanMd && (
       <div style={{ margin: "10px 0" }}>
         <Typography color="textSecondary" variant="button">
-          QUEUE (5)
+          QUEUE ({queuedSongs.length})
         </Typography>
-        {Array.from({ length: 5 }, () => song).map((song) => (
-          <QueuedSong key={song.id} song={song} />
+        {queuedSongs.map((song, i) => (
+          <QueuedSong key={i} song={song} />
         ))}
       </div>
     )
@@ -53,6 +56,20 @@ const useStyles = makeStyles({
 function QueuedSong({ song }) {
   const classes = useStyles();
   const { thumbnail, artist, title } = song;
+  const [addOrRemoveFromQueue] = useMutation(ADD_OR_REMOVE_FROM_QUEUE, {
+    onCompleted: (data) => {
+      localStorage.setItem(
+        "queuedSongs",
+        JSON.stringify(data.addOrRemoveFromQueue)
+      );
+    },
+  });
+
+  function handleAddOrRemoveFromQueue() {
+    addOrRemoveFromQueue({
+      variables: { input: { ...song, __typename: "Song" } },
+    });
+  }
 
   return (
     <div className={classes.container}>
@@ -69,7 +86,7 @@ function QueuedSong({ song }) {
           {artist}
         </Typography>
       </div>
-      <IconButton>
+      <IconButton onClick={handleAddOrRemoveFromQueue}>
         <Delete color="error" />
       </IconButton>
     </div>

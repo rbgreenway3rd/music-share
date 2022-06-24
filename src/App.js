@@ -4,13 +4,28 @@ import AddSong from "./components/AddSong";
 import Header from "./components/Header";
 import MusicPlayer from "./components/MusicPlayer";
 import SongList from "./components/SongList";
+import songReducer from "./Reducer";
+
+export const songContext = React.createContext({
+  song: {
+    id: "0a4764cf-e9bc-47ee-b732-74ad510c104a",
+    title: "Gnossienne No.3",
+    artist: "Erik Satie",
+    thumbnail: "http://img.youtube.com/vi/3c_RU2NcJ9c/0.jpg",
+    url: "https://www.youtube.com/watch?v=3c_RU2NcJ9c&ab_channel=DistantMirrors",
+    duration: 265,
+  },
+  isPlaying: false,
+});
 
 function App() {
+  const initialSongState = React.useContext(songContext);
+  const [state, dispatch] = React.useReducer(songReducer, initialSongState);
   const greaterThanSm = useMediaQuery((theme) => theme.breakpoints.up("sm"));
   const greaterThanMd = useMediaQuery((theme) => theme.breakpoints.up("md"));
 
   return (
-    <>
+    <songContext.Provider value={{ state, dispatch }}>
       <Header />
 
       <Grid container spacing={3}>
@@ -48,7 +63,7 @@ function App() {
           <MusicPlayer />
         </Grid>
       </Grid>
-    </>
+    </songContext.Provider>
   );
 }
 
